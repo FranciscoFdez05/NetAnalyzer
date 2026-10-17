@@ -1,0 +1,6 @@
+build/
+NetAnalyzer
+NetAnalyzer.exe
+NetAnalyzer.pdb
+netanalyzer_*.csv
+imgui.ini
