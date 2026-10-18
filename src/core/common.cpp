@@ -1,4 +1,4 @@
-#include "common.h"
+#include "core/common.h"
 
 #include <algorithm>
 #include <cctype>

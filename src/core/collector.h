@@ -13,7 +13,7 @@
 #include <thread>
 #include <vector>
 
-#include "common.h"
+#include "core/common.h"
 
 class Collector {
 public:

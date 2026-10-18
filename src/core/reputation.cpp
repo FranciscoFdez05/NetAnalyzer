@@ -1,4 +1,4 @@
-#include "reputation.h"
+#include "core/reputation.h"
 
 #include <algorithm>
 #include <chrono>
@@ -9,8 +9,8 @@
 #include <sstream>
 #include <thread>
 
-#include "collector.h"
-#include "http.h"
+#include "core/collector.h"
+#include "core/http.h"
 
 #ifdef _WIN32
 #include <winsock2.h>

@@ -1,0 +1,98 @@
+# Compila NetAnalyzer en Windows, Linux y macOS, ejecuta los tests y publica los ejecutables.
+#  - En cada push/PR: los ejecutables quedan como "artifacts" de la ejecución (pestaña Actions).
+#  - Al subir una etiqueta v* (p. ej. v1.0.0): además se crea la Release con los tres adjuntos.
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write  # necesario para crear la Release
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            package: NetAnalyzer-windows-x64.zip
+            exe: NetAnalyzer.exe
+          - name: Linux x64
+            os: ubuntu-22.04
+            package: NetAnalyzer-linux-x64.tar.gz
+            exe: NetAnalyzer
+          - name: macOS (universal)
+            os: macos-14
+            package: NetAnalyzer-macos-universal.tar.gz
+            exe: NetAnalyzer
+            cmake_args: '"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"'  # Apple Silicon e Intel
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libgl-dev libx11-dev libxrandr-dev \
+            libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev \
+            wayland-protocols libcurl4-openssl-dev
+
+      - name: Configurar
+        shell: bash
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_args }}
+
+      - name: Compilar
+        run: cmake --build build --config Release --parallel
+
+      - name: Tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Empaquetar
+        shell: bash
+        run: |
+          mkdir dist
+          cp "${{ matrix.exe }}" README.md CHANGELOG.md LICENSE dist/
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a "../${{ matrix.package }}" ./*
+          else
+            chmod +x "${{ matrix.exe }}"
+            tar -czf "../${{ matrix.package }}" ./*
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: ${{ matrix.package }}
+          if-no-files-found: error
+
+  release:
+    name: Publicar Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Crear Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "NetAnalyzer ${GITHUB_REF_NAME#v}" \
+            --notes-file CHANGELOG.md

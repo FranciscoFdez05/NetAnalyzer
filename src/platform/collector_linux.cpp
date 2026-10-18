@@ -1,7 +1,7 @@
 // Linux: lee /proc/net/{tcp,tcp6,udp,udp6} (la misma fuente que netstat -tunap / ss) y
 // asocia cada inode de socket a su PID recorriendo /proc/<pid>/fd.
 // Sin root solo se pueden asociar los procesos del propio usuario.
-#include "collector.h"
+#include "core/collector.h"
 
 #include <dirent.h>
 #include <signal.h>

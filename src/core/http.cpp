@@ -1,6 +1,6 @@
-#include "http.h"
+#include "core/http.h"
 
-#include "common.h"  // NETANALYZER_VERSION
+#include "core/common.h"  // NETANALYZER_VERSION
 
 #ifdef _WIN32
 #include <windows.h>

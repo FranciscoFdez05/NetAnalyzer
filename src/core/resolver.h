@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common.h"
+#include "core/common.h"
 
 class Resolver {
 public:

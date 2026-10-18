@@ -17,12 +17,12 @@
 #include <iostream>
 #include <string>
 
-#include "collector.h"
-#include "common.h"
-#include "reputation.h"
-#include "sha256.h"
-#include "tracker.h"
-#include "virustotal.h"
+#include "core/collector.h"
+#include "core/common.h"
+#include "core/reputation.h"
+#include "core/sha256.h"
+#include "core/tracker.h"
+#include "core/virustotal.h"
 
 static int g_checks = 0, g_failures = 0;
 

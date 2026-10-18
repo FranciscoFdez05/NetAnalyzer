@@ -1,4 +1,4 @@
-#include "sha256.h"
+#include "core/sha256.h"
 
 #include <algorithm>
 #include <cstdint>

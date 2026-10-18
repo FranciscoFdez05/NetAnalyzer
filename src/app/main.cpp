@@ -12,8 +12,8 @@
 #include <string>
 #include <sys/stat.h>
 
-#include "app.h"
-#include "http.h"
+#include "app/app.h"
+#include "core/http.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"

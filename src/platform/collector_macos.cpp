@@ -1,6 +1,6 @@
 // macOS: recorre los descriptores de cada proceso con libproc (la misma API que usa
 // lsof -i). Sin root solo se ven los procesos del propio usuario.
-#include "collector.h"
+#include "core/collector.h"
 
 #include <arpa/inet.h>
 #include <libproc.h>

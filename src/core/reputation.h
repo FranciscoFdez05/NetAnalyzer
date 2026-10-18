@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common.h"
+#include "core/common.h"
 
 struct RepResult {
     bool active = false;   // false: IP local o función desactivada

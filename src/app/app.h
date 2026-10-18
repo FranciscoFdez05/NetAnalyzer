@@ -5,11 +5,11 @@
 #include <string>
 #include <vector>
 
-#include "collector.h"
-#include "reputation.h"
-#include "resolver.h"
-#include "tracker.h"
-#include "virustotal.h"
+#include "core/collector.h"
+#include "core/reputation.h"
+#include "core/resolver.h"
+#include "core/tracker.h"
+#include "core/virustotal.h"
 
 struct ImFont;
 

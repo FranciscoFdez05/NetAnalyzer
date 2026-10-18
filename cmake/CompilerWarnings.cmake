@@ -1,0 +1,16 @@
+# netanalyzer_set_warnings(<target>): avisos y opciones comunes para el código del proyecto
+# (no se aplica a dependencias de terceros).
+function(netanalyzer_set_warnings target)
+  if(MSVC)
+    target_compile_options(${target} PRIVATE /utf-8 /W4 /permissive-)
+  else()
+    target_compile_options(${target} PRIVATE -Wall -Wextra)
+  endif()
+  if(NETANALYZER_WARNINGS_AS_ERRORS)
+    if(MSVC)
+      target_compile_options(${target} PRIVATE /WX)
+    else()
+      target_compile_options(${target} PRIVATE -Werror)
+    endif()
+  endif()
+endfunction()

@@ -1,4 +1,4 @@
-#include "virustotal.h"
+#include "core/virustotal.h"
 
 #include <algorithm>
 #include <chrono>
@@ -10,9 +10,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "collector.h"
-#include "http.h"
-#include "sha256.h"
+#include "core/collector.h"
+#include "core/http.h"
+#include "core/sha256.h"
 
 namespace {
 

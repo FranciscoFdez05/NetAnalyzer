@@ -1,6 +1,6 @@
 // Windows: GetExtendedTcpTable / GetExtendedUdpTable. No requiere administrador para ver
 // todas las conexiones con su PID; los nombres salen de una instantánea Toolhelp32.
-#include "collector.h"
+#include "core/collector.h"
 
 #include <winsock2.h>
 #include <ws2tcpip.h>

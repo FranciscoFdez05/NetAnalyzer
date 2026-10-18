@@ -91,6 +91,15 @@ hay detrás de cada uno. Es más rápido (unos 1–15 ms por muestreo) y más es
 | Linux | `/proc/net/{tcp,tcp6,udp,udp6}` + `/proc/<pid>/fd` | `sudo netstat -tunap` |
 | macOS | `libproc` (`proc_pidfdinfo`) | `sudo lsof -i -P -n`, `netstat -anv` |
 
+## Descargar
+
+Los ejecutables de Windows, Linux y macOS se generan automáticamente con GitHub Actions y se
+publican en [Releases](https://github.com/FranciscoFdez05/NetAnalyzer/releases): descomprime y
+ejecuta `NetAnalyzer` (o `NetAnalyzer.exe`). En Linux necesitas además `libcurl` (viene instalado
+en casi todas las distribuciones). En macOS el ejecutable no está firmado por Apple: la primera vez
+ábrelo con clic derecho > Abrir, o quítale la marca de cuarentena con
+`xattr -d com.apple.quarantine NetAnalyzer`.
+
 ## Compilar
 
 Hace falta **CMake ≥ 3.20** y un compilador C++17. La primera vez, CMake descarga GLFW,
@@ -173,18 +182,36 @@ una apertura y la siguiente hacia esa misma IP.
 
 ## Estructura
 
+```
+NetAnalyzer/
+├── CMakeLists.txt        Configuración principal (versión, opciones, subdirectorios)
+├── cmake/
+│   ├── Dependencies.cmake    GLFW, Dear ImGui, ImPlot y nlohmann/json (versión y hash fijos)
+│   └── CompilerWarnings.cmake  Avisos comunes del compilador
+├── src/
+│   ├── app/              Interfaz gráfica (depende de ImGui)
+│   ├── core/             Lógica independiente de la interfaz (biblioteca netanalyzer_core)
+│   └── platform/         Lectura de sockets específica de cada SO
+├── tests/                Tests automáticos (ctest)
+├── resources/            Recursos del ejecutable (versión de Windows)
+└── build.bat / build.sh  Compilación en un paso
+```
+
+Los includes van relativos a `src/` (`#include "core/tracker.h"`), así queda claro de qué capa viene cada
+cabecera. `core` no depende de `app`, y los tests solo enlazan con `core`.
+
 | Archivo | Contenido |
 |---|---|
-| `main.cpp` | Ventana, tema, fuentes y bucle de dibujo (redibuja solo cuando hay datos o interacción) |
-| `app.cpp/.h` | Interfaz: tablas, gráficas, filtros, menús, exportación CSV |
-| `tracker.cpp/.h` | Convierte muestreos en eventos y estadísticas por host y proceso |
-| `collector.cpp/.h` | Hilo de muestreo e interfaz común de los recolectores |
-| `collector_win.cpp` / `_linux.cpp` / `_macos.cpp` | Lectura de sockets específica de cada SO |
-| `resolver.cpp/.h` | IP → nombre en segundo plano (caché DNS de Windows + DNS inverso) |
-| `reputation.cpp/.h` | Listas negras públicas + organización/AS por DNS (Team Cymru) |
-| `virustotal.cpp/.h` | Cliente de VirusTotal: cola, límites, caché en disco |
-| `http.cpp/.h` | HTTPS mínimo (WinHTTP en Windows, libcurl en Linux/macOS) |
-| `sha256.cpp/.h` | SHA-256 de ejecutables (BCrypt en Windows, portable en el resto) |
-| `netanalyzer.rc.in` | Versión que aparece en Propiedades del `.exe` |
-| `tests.cpp` | Tests automáticos (`ctest`) |
-| `common.cpp/.h` | Tipos (`Conn`, `IpAddr`) y utilidades de formato |
+| `src/app/main.cpp` | Ventana, tema, fuentes y bucle de dibujo (redibuja solo cuando hay datos o interacción) |
+| `src/app/app.cpp/.h` | Interfaz: tablas, gráficas, filtros, menús, exportación CSV |
+| `src/core/tracker.cpp/.h` | Convierte muestreos en eventos y estadísticas por host y proceso |
+| `src/core/collector.cpp/.h` | Hilo de muestreo e interfaz común de los recolectores |
+| `src/platform/collector_{win,linux,macos}.cpp` | Lectura de sockets específica de cada SO |
+| `src/core/resolver.cpp/.h` | IP → nombre en segundo plano (caché DNS de Windows + DNS inverso) |
+| `src/core/reputation.cpp/.h` | Listas negras públicas + organización/AS por DNS (Team Cymru) |
+| `src/core/virustotal.cpp/.h` | Cliente de VirusTotal: cola, límites, caché en disco |
+| `src/core/http.cpp/.h` | HTTPS mínimo (WinHTTP en Windows, libcurl en Linux/macOS) |
+| `src/core/sha256.cpp/.h` | SHA-256 de ejecutables (BCrypt en Windows, portable en el resto) |
+| `src/core/common.cpp/.h` | Tipos (`Conn`, `IpAddr`) y utilidades de formato |
+| `resources/netanalyzer.rc.in` | Versión que aparece en Propiedades del `.exe` |
+| `tests/tests.cpp` | Tests automáticos (`ctest`) |
