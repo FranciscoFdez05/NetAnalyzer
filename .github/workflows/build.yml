@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           mkdir dist
-          cp "${{ matrix.exe }}" README.md CHANGELOG.md LICENSE dist/
+          cp "build/Release/${{ matrix.exe }}" README.md CHANGELOG.md LICENSE dist/
           cd dist
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a "../${{ matrix.package }}" ./*

@@ -3,6 +3,8 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "core/collector.h"
@@ -12,6 +14,15 @@
 #include "core/virustotal.h"
 
 struct ImFont;
+
+// Fuentes cargadas en main.cpp. `icons`: hay glifos de iconos fusionados en normal/bold.
+struct AppFonts {
+    ImFont* normal = nullptr;
+    ImFont* bold = nullptr;
+    ImFont* big = nullptr;
+    ImFont* label = nullptr;  // seminegrita pequeña (títulos de tarjetas, etiquetas)
+    bool icons = false;
+};
 
 class App {
 public:
@@ -40,13 +51,13 @@ public:
     void selectTab(int tab) { pendingTab_ = tab; }
 
     Settings settings;
-    ImFont* fontBig = nullptr;
+    AppFonts fonts;
     float scale = 1.0f;
 
 private:
-    struct ConnRow { LiveConn* lc; std::string host, hay; VtResult vtIp, vtProc; RepResult rep; };
+    struct ConnRow { LiveConn* lc; std::string host, hay; VtResult vtIp, vtProc; RepResult rep; std::string path; };
     struct HostRow { HostStats* h; std::string name, hay; VtResult vt; RepResult rep; };
-    struct ProcRow { ProcStats* p; std::string hay; VtResult vt; };
+    struct ProcRow { ProcStats* p; std::string hay; VtResult vt; std::string path; };
     struct EventRow { const ConnEvent* e; std::string host; };
     struct SortState { int col; bool asc; bool dirty = true; };
 
@@ -68,6 +79,8 @@ private:
     int repColumnFlags() const;
     int orgColumnFlags() const;  // organización/país: los da la reputación o VirusTotal
 
+    bool beginTab(const char* label, int index);
+
     void drawToolbar();
     void drawCards();
     void drawConnections();
@@ -79,9 +92,10 @@ private:
     void drawEventsTable(const char* id, const std::vector<EventRow>& rows, bool compact);
     void drawStatusBar();
     void drawModals();
-    void connMenu(const Conn& c, const std::string& host, const VtResult& vtProc);
+    void connMenu(const Conn& c, const std::string& host, const VtResult& vtProc, const std::string& path);
     void ipIntelMenu(const std::string& ip);
-    void vtProcMenu(int pid, const std::string& name, const VtResult& vt);
+    void vtProcMenu(int pid, const std::string& name, const VtResult& vt, const std::string& path);
+    const std::string& exePath(int pid, const std::string& name);
     void drawVtSettings();
     void applyVtSettings();
 
@@ -102,6 +116,9 @@ private:
     char filter_[256] = {0};
     std::vector<std::string> include_, exclude_;
 
+    // Ruta del ejecutable por PID (con el nombre, por si el PID se reutiliza): abrir el proceso
+    // en cada refresco sería caro.
+    std::unordered_map<int, std::pair<std::string, std::string>> pathCache_;
     std::vector<ConnRow> connRows_;
     std::vector<HostRow> hostRows_;
     std::vector<ProcRow> procRows_;

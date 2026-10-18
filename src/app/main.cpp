@@ -1,11 +1,18 @@
 // NetAnalyzer: explorador de conexiones de red en tiempo real (Windows, Linux, macOS).
 #ifdef _WIN32
 #include <winsock2.h>
+#include <windows.h>
+#include <dwmapi.h>
 #endif
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -30,62 +37,79 @@ bool fileExists(const char* path) {
 
 ImVec4 rgb(int r, int g, int b, float a = 1.0f) { return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a); }
 
+// Tema oscuro sobrio: superficies grises neutras, un único color de acento y bordes finos.
 void applyTheme(float scale) {
     ImGuiStyle& s = ImGui::GetStyle();
     ImGui::StyleColorsDark(&s);
     s.WindowRounding = 0;
     s.ChildRounding = 8;
-    s.FrameRounding = 6;
-    s.PopupRounding = 6;
-    s.GrabRounding = 6;
-    s.TabRounding = 6;
-    s.ScrollbarRounding = 8;
-    s.WindowPadding = ImVec2(12, 10);
-    s.FramePadding = ImVec2(10, 5);
-    s.ItemSpacing = ImVec2(8, 7);
-    s.CellPadding = ImVec2(7, 3);
-    s.ScrollbarSize = 13;
+    s.FrameRounding = 5;
+    s.PopupRounding = 8;
+    s.GrabRounding = 5;
+    s.TabRounding = 0;
+    s.ScrollbarRounding = 6;
+    s.WindowPadding = ImVec2(14, 12);
+    s.FramePadding = ImVec2(10, 6);
+    s.ItemSpacing = ImVec2(8, 8);
+    s.ItemInnerSpacing = ImVec2(6, 6);
+    s.CellPadding = ImVec2(8, 4);
+    s.ScrollbarSize = 12;
     s.WindowBorderSize = 0;
     s.ChildBorderSize = 1;
     s.PopupBorderSize = 1;
     s.FrameBorderSize = 1;
+    s.TabBorderSize = 0;
+    s.TabBarBorderSize = 1;
+    s.SeparatorTextBorderSize = 1;
+    s.SeparatorTextPadding = ImVec2(0, 4);
+    s.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+    s.SelectableTextAlign = ImVec2(0, 0.5f);
 
     ImVec4* c = s.Colors;
-    c[ImGuiCol_Text] = rgb(230, 232, 238);
-    c[ImGuiCol_TextDisabled] = rgb(139, 147, 165);
-    c[ImGuiCol_WindowBg] = rgb(20, 22, 27);
-    c[ImGuiCol_ChildBg] = rgb(27, 30, 37);
-    c[ImGuiCol_PopupBg] = rgb(34, 38, 48);
-    c[ImGuiCol_Border] = rgb(44, 49, 60);
-    c[ImGuiCol_FrameBg] = rgb(36, 40, 50);
-    c[ImGuiCol_FrameBgHovered] = rgb(46, 52, 65);
-    c[ImGuiCol_FrameBgActive] = rgb(54, 62, 80);
-    c[ImGuiCol_Button] = rgb(38, 43, 54);
-    c[ImGuiCol_ButtonHovered] = rgb(49, 56, 72);
-    c[ImGuiCol_ButtonActive] = rgb(59, 69, 96);
-    c[ImGuiCol_Header] = rgb(43, 74, 122, 0.85f);
-    c[ImGuiCol_HeaderHovered] = rgb(43, 74, 122, 0.55f);
-    c[ImGuiCol_HeaderActive] = rgb(53, 90, 150);
-    c[ImGuiCol_Tab] = rgb(27, 30, 37);
-    c[ImGuiCol_TabHovered] = rgb(49, 56, 72);
-    c[ImGuiCol_TabActive] = rgb(43, 74, 122);
-    c[ImGuiCol_TabUnfocused] = rgb(27, 30, 37);
-    c[ImGuiCol_TabUnfocusedActive] = rgb(38, 55, 85);
-    c[ImGuiCol_TableHeaderBg] = rgb(30, 34, 43);
-    c[ImGuiCol_TableBorderStrong] = rgb(44, 49, 60);
-    c[ImGuiCol_TableBorderLight] = rgb(36, 40, 50);
+    c[ImGuiCol_Text] = rgb(226, 229, 235);
+    c[ImGuiCol_TextDisabled] = rgb(120, 128, 143);
+    c[ImGuiCol_WindowBg] = rgb(15, 17, 21);
+    c[ImGuiCol_ChildBg] = rgb(21, 24, 30);
+    c[ImGuiCol_PopupBg] = rgb(26, 30, 37);
+    c[ImGuiCol_Border] = rgb(38, 43, 52);
+    c[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_FrameBg] = rgb(25, 28, 35);
+    c[ImGuiCol_FrameBgHovered] = rgb(31, 35, 44);
+    c[ImGuiCol_FrameBgActive] = rgb(36, 41, 52);
+    c[ImGuiCol_TitleBg] = rgb(21, 24, 30);
+    c[ImGuiCol_TitleBgActive] = rgb(26, 30, 37);
+    c[ImGuiCol_Button] = rgb(30, 34, 42);
+    c[ImGuiCol_ButtonHovered] = rgb(40, 45, 56);
+    c[ImGuiCol_ButtonActive] = rgb(48, 55, 69);
+    c[ImGuiCol_Header] = rgb(76, 141, 255, 0.20f);
+    c[ImGuiCol_HeaderHovered] = rgb(255, 255, 255, 0.045f);
+    c[ImGuiCol_HeaderActive] = rgb(76, 141, 255, 0.28f);
+    c[ImGuiCol_Tab] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TabHovered] = rgb(255, 255, 255, 0.05f);
+    c[ImGuiCol_TabSelected] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TabSelectedOverline] = ImVec4(0, 0, 0, 0);  // el subrayado de acento lo dibuja App
+    c[ImGuiCol_TabDimmed] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TabDimmedSelected] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TableHeaderBg] = rgb(24, 27, 34);
+    c[ImGuiCol_TableBorderStrong] = rgb(38, 43, 52);
+    c[ImGuiCol_TableBorderLight] = rgb(30, 34, 42);
     c[ImGuiCol_TableRowBg] = ImVec4(0, 0, 0, 0);
-    c[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.025f);
-    c[ImGuiCol_CheckMark] = rgb(79, 157, 255);
-    c[ImGuiCol_SliderGrab] = rgb(79, 157, 255);
-    c[ImGuiCol_SliderGrabActive] = rgb(110, 175, 255);
+    c[ImGuiCol_TableRowBgAlt] = rgb(255, 255, 255, 0.018f);
+    c[ImGuiCol_CheckMark] = rgb(76, 141, 255);
+    c[ImGuiCol_SliderGrab] = rgb(76, 141, 255);
+    c[ImGuiCol_SliderGrabActive] = rgb(110, 165, 255);
     c[ImGuiCol_ScrollbarBg] = ImVec4(0, 0, 0, 0);
-    c[ImGuiCol_ScrollbarGrab] = rgb(58, 64, 77);
-    c[ImGuiCol_ScrollbarGrabHovered] = rgb(72, 80, 96);
-    c[ImGuiCol_ScrollbarGrabActive] = rgb(90, 100, 120);
-    c[ImGuiCol_Separator] = rgb(44, 49, 60);
-    c[ImGuiCol_TextSelectedBg] = rgb(79, 157, 255, 0.35f);
-    c[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.55f);
+    c[ImGuiCol_ScrollbarGrab] = rgb(50, 56, 68);
+    c[ImGuiCol_ScrollbarGrabHovered] = rgb(64, 71, 86);
+    c[ImGuiCol_ScrollbarGrabActive] = rgb(80, 89, 107);
+    c[ImGuiCol_Separator] = rgb(38, 43, 52);
+    c[ImGuiCol_SeparatorHovered] = rgb(76, 141, 255, 0.6f);
+    c[ImGuiCol_SeparatorActive] = rgb(76, 141, 255);
+    c[ImGuiCol_ResizeGrip] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_TextSelectedBg] = rgb(76, 141, 255, 0.35f);
+    c[ImGuiCol_NavHighlight] = rgb(76, 141, 255, 0.8f);
+    c[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.6f);
     s.ScaleAllSizes(scale);
 
     ImPlotStyle& ps = ImPlot::GetStyle();
@@ -93,78 +117,157 @@ void applyTheme(float scale) {
     ps.UseLocalTime = true;
     ps.Use24HourClock = true;
     ps.LineWeight = 2.0f;
+    ps.PlotPadding = ImVec2(12 * scale, 12 * scale);
+    ps.LabelPadding = ImVec2(6 * scale, 4 * scale);
+    ps.LegendPadding = ImVec2(10 * scale, 8 * scale);
+    ps.LegendInnerPadding = ImVec2(6 * scale, 4 * scale);
     ps.Colors[ImPlotCol_FrameBg] = ImVec4(0, 0, 0, 0);
-    ps.Colors[ImPlotCol_PlotBg] = rgb(15, 17, 21);
-    ps.Colors[ImPlotCol_PlotBorder] = rgb(44, 49, 60);
-    ps.Colors[ImPlotCol_LegendBg] = rgb(27, 30, 37, 0.9f);
-    ps.Colors[ImPlotCol_AxisGrid] = rgb(255, 255, 255, 0.07f);
+    ps.Colors[ImPlotCol_PlotBg] = ImVec4(0, 0, 0, 0);
+    ps.Colors[ImPlotCol_PlotBorder] = ImVec4(0, 0, 0, 0);
+    ps.Colors[ImPlotCol_LegendBg] = rgb(26, 30, 37, 0.92f);
+    ps.Colors[ImPlotCol_LegendBorder] = rgb(38, 43, 52);
+    ps.Colors[ImPlotCol_AxisGrid] = rgb(255, 255, 255, 0.06f);
+    ps.Colors[ImPlotCol_AxisText] = rgb(120, 128, 143);
+    ps.Colors[ImPlotCol_TitleText] = rgb(226, 229, 235);
 }
 
-// Fuente del sistema con soporte de acentos; si no hay ninguna se usa la integrada.
-ImFont* loadFonts(float px, float bigPx, float rasterScale, ImFont** big) {
-    static const ImWchar ranges[] = {0x0020, 0x00FF, 0x0100, 0x017F, 0x2013, 0x2026, 0x2190, 0x21FF, 0x2265, 0x2265, 0};
-    const char* candidates[] = {
+// Fuentes del sistema: normal, seminegrita (títulos), grande (cifras) y pequeña (etiquetas).
+// En Windows se fusiona la fuente de iconos del sistema (Segoe Fluent Icons / MDL2 Assets).
+void loadFonts(float px, float rasterScale, AppFonts& out) {
+    static const ImWchar ranges[] = {0x0020, 0x00FF, 0x0100, 0x017F, 0x2013, 0x2026, 0x2190, 0x21FF, 0x2265, 0x2265,
+                                     0x25CF, 0x25CF, 0};
+    static const ImWchar iconRanges[] = {0xE700, 0xF8B3, 0};
+    struct Family { const char* regular; const char* semibold; };
+    const Family families[] = {
 #if defined(_WIN32)
-        "C:\\Windows\\Fonts\\segoeui.ttf", "C:\\Windows\\Fonts\\arial.ttf",
+        {"C:\\Windows\\Fonts\\segoeui.ttf", "C:\\Windows\\Fonts\\seguisb.ttf"},
+        {"C:\\Windows\\Fonts\\arial.ttf", "C:\\Windows\\Fonts\\arialbd.ttf"},
 #elif defined(__APPLE__)
-        "/System/Library/Fonts/Supplemental/Arial.ttf", "/Library/Fonts/Arial.ttf",
-        "/System/Library/Fonts/Helvetica.ttc",
+        {"/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"},
+        {"/Library/Fonts/Arial.ttf", "/Library/Fonts/Arial Bold.ttf"},
+        {"/System/Library/Fonts/Helvetica.ttc", nullptr},
 #else
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans.ttf",
-        "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf", "/usr/share/fonts/noto/NotoSans-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
+        {"/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", "/usr/share/fonts/truetype/noto/NotoSans-SemiBold.ttf"},
+        {"/usr/share/fonts/noto/NotoSans-Regular.ttf", "/usr/share/fonts/noto/NotoSans-SemiBold.ttf"},
+        {"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"},
+        {"/usr/share/fonts/TTF/DejaVuSans.ttf", "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"},
+        {"/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf", "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf"},
+        {"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"},
+        {"/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf", "/usr/share/fonts/truetype/ubuntu/Ubuntu-M.ttf"},
 #endif
     };
+    const char* iconFont = nullptr;
+#if defined(_WIN32)
+    if (fileExists("C:\\Windows\\Fonts\\SegoeIcons.ttf")) iconFont = "C:\\Windows\\Fonts\\SegoeIcons.ttf";
+    else if (fileExists("C:\\Windows\\Fonts\\segmdl2.ttf")) iconFont = "C:\\Windows\\Fonts\\segmdl2.ttf";
+#endif
     ImGuiIO& io = ImGui::GetIO();
-    ImFontConfig cfg;
-    cfg.OversampleH = 2;
-    for (const char* path : candidates) {
-        if (!fileExists(path)) continue;
-        ImFont* normal = io.Fonts->AddFontFromFileTTF(path, px * rasterScale, &cfg, ranges);
-        if (!normal) continue;
-        *big = io.Fonts->AddFontFromFileTTF(path, bigPx * rasterScale, &cfg, ranges);
-        io.FontGlobalScale = 1.0f / rasterScale;
-        return normal;
-    }
-    ImFontConfig def;
-    def.SizePixels = 13.0f * px / 16.0f * rasterScale;
-    ImFont* normal = io.Fonts->AddFontDefault(&def);
-    def.SizePixels = 13.0f * bigPx / 16.0f * rasterScale;
-    *big = io.Fonts->AddFontDefault(&def);
     io.FontGlobalScale = 1.0f / rasterScale;
-    return normal;
+    auto add = [&](const char* path, float size, bool icons) -> ImFont* {
+        ImFontConfig cfg;
+        cfg.OversampleH = 2;
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, size * rasterScale, &cfg, ranges);
+        if (f && icons && iconFont) {
+            ImFontConfig ic;
+            ic.MergeMode = true;
+            ic.OversampleH = 2;
+            ic.GlyphOffset = ImVec2(0, size * 0.12f * rasterScale);
+            ic.GlyphMinAdvanceX = size * rasterScale;
+            if (io.Fonts->AddFontFromFileTTF(iconFont, size * 0.92f * rasterScale, &ic, iconRanges)) out.icons = true;
+        }
+        return f;
+    };
+    for (const Family& fam : families) {
+        if (!fileExists(fam.regular)) continue;
+        const char* bold = fam.semibold && fileExists(fam.semibold) ? fam.semibold : fam.regular;
+        out.normal = add(fam.regular, px, true);
+        if (!out.normal) continue;
+        out.bold = add(bold, px, true);
+        out.big = add(bold, px * 1.6f, false);
+        out.label = add(bold, px * 0.85f, false);
+        return;
+    }
+    out.icons = false;
+    auto def = [&](float size) {
+        ImFontConfig cfg;
+        cfg.SizePixels = 13.0f * size / 16.0f * rasterScale;
+        return io.Fonts->AddFontDefault(&cfg);
+    };
+    out.normal = def(px);
+    out.bold = out.normal;
+    out.big = def(px * 1.6f);
+    out.label = out.normal;
 }
 
-#ifndef __APPLE__
-// Icono de la ventana dibujado por código (sin ficheros extra): nodos de red sobre fondo azul.
+#ifdef _WIN32
+// Barra de título oscura (Windows 10 20H1+ / 11), a juego con la interfaz.
+void setDarkTitleBar(GLFWwindow* win) {
+    HWND hwnd = glfwGetWin32Window(win);
+    BOOL dark = TRUE;
+    DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &dark, sizeof dark);
+    const COLORREF caption = RGB(15, 17, 21), text = RGB(226, 229, 235), border = RGB(38, 43, 52);
+    DwmSetWindowAttribute(hwnd, 35 /* DWMWA_CAPTION_COLOR (Windows 11) */, &caption, sizeof caption);
+    DwmSetWindowAttribute(hwnd, 36 /* DWMWA_TEXT_COLOR */, &text, sizeof text);
+    DwmSetWindowAttribute(hwnd, 34 /* DWMWA_BORDER_COLOR */, &border, sizeof border);
+}
+#endif
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+// Icono de la ventana en Linux, dibujado por código con la misma geometría que el logo
+// (tools/make_logo.py). En Windows lo pone GLFW desde el recurso GLFW_ICON del .exe.
 void setWindowIcon(GLFWwindow* win) {
-    const int N = 48;
+    const int N = 64, SS = 4;  // tamaño y supermuestreo por eje
     static unsigned char px[N * N * 4];
-    const float nodes[4][2] = {{14, 14}, {34, 12}, {24, 34}, {38, 32}};
-    auto distSeg = [](float x, float y, const float* a, const float* b) {
-        float dx = b[0] - a[0], dy = b[1] - a[1];
-        float t = ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy);
+    const float kRadius = 0.225f, kHubR = 0.105f, kSatR = 0.078f, kSatDist = 0.315f, kLinkW = 0.044f;
+    const float kRingR = 0.315f, kRingW = 0.03f, kRingAlpha = 0.38f;
+    const float angles[3] = {-150.0f, -30.0f, 90.0f};
+    float sats[3][2];
+    for (int i = 0; i < 3; ++i) {
+        const float r = angles[i] * 3.14159265f / 180.0f;
+        sats[i][0] = 0.5f + std::cos(r) * kSatDist;
+        sats[i][1] = 0.5f + std::sin(r) * kSatDist;
+    }
+    auto segDist = [](float x, float y, const float* b) {
+        const float ax = 0.5f, ay = 0.5f, dx = b[0] - ax, dy = b[1] - ay;
+        float t = ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy);
         t = t < 0 ? 0 : (t > 1 ? 1 : t);
-        float ex = a[0] + t * dx - x, ey = a[1] + t * dy - y;
-        return ex * ex + ey * ey;
+        return std::hypot(ax + t * dx - x, ay + t * dy - y);
     };
     for (int y = 0; y < N; ++y) {
         for (int x = 0; x < N; ++x) {
-            unsigned char* p = px + (y * N + x) * 4;
-            const float cx = x - 23.5f, cy = y - 23.5f;
-            const bool inside = cx * cx + cy * cy <= 23.5f * 23.5f;
-            p[0] = 40; p[1] = 110; p[2] = 220; p[3] = inside ? 255 : 0;
-            if (!inside) continue;
-            bool white = false;
-            for (int i = 0; i < 4 && !white; ++i) {
-                const float dx = x - nodes[i][0], dy = y - nodes[i][1];
-                white = dx * dx + dy * dy <= 20;
+            float acc[4] = {0, 0, 0, 0};  // premultiplicado
+            for (int sy = 0; sy < SS; ++sy) {
+                for (int sx = 0; sx < SS; ++sx) {
+                    const float u = (x + (sx + 0.5f) / SS) / N, v = (y + (sy + 0.5f) / SS) / N;
+                    // cuadrado redondeado
+                    const float qx = std::max(std::fabs(u - 0.5f) - (0.5f - kRadius), 0.0f);
+                    const float qy = std::max(std::fabs(v - 0.5f) - (0.5f - kRadius), 0.0f);
+                    if (qx * qx + qy * qy > kRadius * kRadius) continue;
+                    const float t = (u + v) * 0.5f;
+                    float c[3] = {64 + (124 - 64) * t, 140 + (92 - 140) * t, 255 + (250 - 255) * t};
+                    auto blend = [&c](float r, float g, float b, float a) {
+                        c[0] += (r - c[0]) * a;
+                        c[1] += (g - c[1]) * a;
+                        c[2] += (b - c[2]) * a;
+                    };
+                    const float dc = std::hypot(u - 0.5f, v - 0.5f);
+                    if (std::fabs(dc - kRingR) <= kRingW * 0.5f) blend(255, 255, 255, kRingAlpha);
+                    bool white = dc <= kHubR;
+                    for (int i = 0; i < 3 && !white; ++i) white = segDist(u, v, sats[i]) <= kLinkW * 0.5f;
+                    if (white) blend(255, 255, 255, 1);
+                    for (int i = 0; i < 3; ++i)
+                        if (std::hypot(u - sats[i][0], v - sats[i][1]) <= kSatR)
+                            i == 2 ? blend(74, 222, 128, 1) : blend(255, 255, 255, 1);
+                    acc[0] += c[0];
+                    acc[1] += c[1];
+                    acc[2] += c[2];
+                    acc[3] += 1;
+                }
             }
-            const int edges[4][2] = {{0, 1}, {0, 2}, {1, 3}, {2, 3}};
-            for (int i = 0; i < 4 && !white; ++i)
-                white = distSeg(float(x), float(y), nodes[edges[i][0]], nodes[edges[i][1]]) <= 2.2f;
-            if (white) p[0] = p[1] = p[2] = 255;
+            unsigned char* p = px + (y * N + x) * 4;
+            for (int i = 0; i < 3; ++i) p[i] = acc[3] > 0 ? (unsigned char)(acc[i] / acc[3]) : 0;
+            p[3] = (unsigned char)(255.0f * acc[3] / (SS * SS));
         }
     }
     GLFWimage img{N, N, px};
@@ -224,10 +327,13 @@ int main(int argc, char** argv) {
             glfwSetWindowPos(win, mx + (mw - ww - fl - fr) / 2 + fl, my + (mh - wh - ft - fb) / 2 + ft);
         }
     }
+#ifdef _WIN32
+    setDarkTitleBar(win);
+#endif
     glfwShowWindow(win);
     glfwMakeContextCurrent(win);
     glfwSwapInterval(1);  // vsync: animación fluida sin gastar CPU de más
-#ifndef __APPLE__
+#if !defined(_WIN32) && !defined(__APPLE__)
     setWindowIcon(win);
 #endif
 
@@ -250,8 +356,8 @@ int main(int argc, char** argv) {
     io.IniFilename = iniPath.c_str();
 
     applyTheme(layoutScale);
-    ImFont* big = nullptr;
-    loadFonts(16.0f * layoutScale, 25.0f * layoutScale, rasterScale, &big);
+    AppFonts fonts;
+    loadFonts(16.0f * layoutScale, rasterScale, fonts);
 
     ImGui_ImplGlfw_InitForOpenGL(win, true);
     ImGui_ImplOpenGL3_Init(glsl);
@@ -266,7 +372,7 @@ int main(int argc, char** argv) {
         CollectorThread collector([] { glfwPostEmptyEvent(); });  // despierta la interfaz al llegar datos
         App app(collector, *resolver, *vt, *rep);
         app.scale = layoutScale;
-        app.fontBig = big;
+        app.fonts = fonts;
         if (startTab >= 0 && startTab <= 3) app.selectTab(startTab);
 
         double lastInput = 0, lastFrame = 0;
@@ -308,7 +414,7 @@ int main(int argc, char** argv) {
             int w = 0, h = 0;
             glfwGetFramebufferSize(win, &w, &h);
             glViewport(0, 0, w, h);
-            glClearColor(0.078f, 0.086f, 0.106f, 1.0f);
+            glClearColor(15 / 255.0f, 17 / 255.0f, 21 / 255.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             glfwSwapBuffers(win);

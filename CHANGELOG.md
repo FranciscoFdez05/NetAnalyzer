@@ -1,5 +1,27 @@
 # Changelog
 
+## Sin publicar
+
+### Interfaz
+- Rediseño visual: tema oscuro neutro con un único color de acento, barra de título oscura en
+  Windows, fuente seminegrita para títulos y cabeceras, e iconos del sistema (Segoe Fluent Icons)
+  en los botones cuando están disponibles.
+- Barra de herramientas reorganizada: filtro con icono de búsqueda y botón para limpiarlo, y los
+  filtros de vista como interruptores ("chips") agrupados en *Mostrar* y *Análisis*.
+- Tarjetas de métricas rediseñadas, con minigráficas que se escalan a su rango para que se vean las
+  variaciones.
+- Tablas más legibles: protocolo como etiqueta, estado TCP con punto de color, filas nuevas,
+  cerradas o maliciosas marcadas con una franja lateral y un tinte más suave.
+- Pestañas con subrayado de acento, selector segmentado de la ventana de tiempo y barra de estado
+  fija con indicador "En vivo" / "Pausado".
+- Logo nuevo (`tools/make_logo.py`): icono del `.exe`, de la ventana y de la barra de tareas.
+- Columna **Ruta del ejecutable** en Conexiones y Procesos, sin necesidad de VirusTotal; también
+  en el filtro, el menú contextual y el CSV.
+- En Hosts, las columnas de intervalos pasan al final de la tabla.
+
+### Compilación
+- El ejecutable se genera en `build/Release` en lugar de en la raíz del proyecto.
+
 ## 1.0.0 — 2026-10-18
 
 Primera versión pública.

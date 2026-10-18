@@ -37,6 +37,7 @@ add_executable(NetAnalyzer WIN32 app/main.cpp app/app.cpp)
 if(WIN32)
   configure_file(${PROJECT_SOURCE_DIR}/resources/netanalyzer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/netanalyzer.rc @ONLY)
   target_sources(NetAnalyzer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/netanalyzer.rc)
+  target_link_libraries(NetAnalyzer PRIVATE dwmapi)  # barra de título oscura
 endif()
 target_link_libraries(NetAnalyzer PRIVATE netanalyzer_core imgui)
 netanalyzer_set_warnings(NetAnalyzer)
@@ -44,10 +45,5 @@ if(MSVC)
   target_link_options(NetAnalyzer PRIVATE /ENTRY:mainCRTStartup)  # main() sin consola
 endif()
 
-# El ejecutable final queda en la carpeta raíz del proyecto.
-set_target_properties(NetAnalyzer PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}
-  RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_SOURCE_DIR}
-  RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_SOURCE_DIR})
+# El ejecutable queda en build/Release (o build/<Config>), igual en todos los generadores.
+set_target_properties(NetAnalyzer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>)

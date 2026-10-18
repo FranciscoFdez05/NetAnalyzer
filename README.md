@@ -103,13 +103,13 @@ en casi todas las distribuciones). En macOS el ejecutable no está firmado por A
 ## Compilar
 
 Hace falta **CMake ≥ 3.20** y un compilador C++17. La primera vez, CMake descarga GLFW,
-Dear ImGui e ImPlot (con versión y hash SHA-256 fijos). El ejecutable queda en esta misma carpeta.
+Dear ImGui e ImPlot (con versión y hash SHA-256 fijos). El ejecutable queda en `build/Release`.
 
 ### Windows
 Requiere Visual Studio 2022 o posterior con la carga de trabajo *Desarrollo para el escritorio con C++*.
 ```bat
 build.bat
-NetAnalyzer.exe
+build\Release\NetAnalyzer.exe
 ```
 No hace falta ser administrador: Windows muestra todas las conexiones con su PID.
 
@@ -125,14 +125,14 @@ sudo dnf install gcc-c++ cmake mesa-libGL-devel libX11-devel libXrandr-devel lib
                  libcurl-devel
 
 ./build.sh
-./NetAnalyzer
+./build/Release/NetAnalyzer
 ```
 Sin root solo se identifican los procesos de tu usuario. Para verlos todos hay dos opciones:
 ```sh
-sudo -E ./NetAnalyzer                        # como root, conservando tu sesión gráfica
+sudo -E ./build/Release/NetAnalyzer          # como root, conservando tu sesión gráfica
 # o, sin ejecutar la interfaz como root:
-sudo setcap cap_sys_ptrace,cap_dac_read_search+ep ./NetAnalyzer
-./NetAnalyzer
+sudo setcap cap_sys_ptrace,cap_dac_read_search+ep ./build/Release/NetAnalyzer
+./build/Release/NetAnalyzer
 ```
 
 ### macOS
@@ -140,7 +140,7 @@ sudo setcap cap_sys_ptrace,cap_dac_read_search+ep ./NetAnalyzer
 xcode-select --install     # compilador
 brew install cmake
 ./build.sh
-sudo ./NetAnalyzer         # sin sudo solo se ven los procesos de tu usuario
+sudo ./build/Release/NetAnalyzer   # sin sudo solo se ven los procesos de tu usuario
 ```
 
 ### Tests
