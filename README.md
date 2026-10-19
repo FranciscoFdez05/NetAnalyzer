@@ -1,4 +1,16 @@
-# NetAnalyzer
+<p align="center">
+  <img src="resources/logo.png" alt="NetAnalyzer" width="128">
+</p>
+
+<h1 align="center">NetAnalyzer</h1>
+
+<p align="center">
+  <a href="https://github.com/FranciscoFdez05/NetAnalyzer/releases/latest"><img src="https://img.shields.io/github/v/release/FranciscoFdez05/NetAnalyzer?label=versi%C3%B3n" alt="Última versión"></a>
+  <a href="https://github.com/FranciscoFdez05/NetAnalyzer/actions/workflows/build.yml"><img src="https://github.com/FranciscoFdez05/NetAnalyzer/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <img src="https://img.shields.io/badge/C%2B%2B-17-00599C" alt="C++17">
+  <img src="https://img.shields.io/badge/Windows%20%7C%20Linux%20%7C%20macOS-0078D4" alt="Windows | Linux | macOS">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT"></a>
+</p>
 
 Explorador de conexiones de red en tiempo real, al estilo de Process Explorer / TCPView,
 para **Windows, Linux y macOS**. Escrito en **C++17** con una interfaz gráfica acelerada
